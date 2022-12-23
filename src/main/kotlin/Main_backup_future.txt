@@ -1,0 +1,376 @@
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+import androidx.compose.animation.*
+import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement.Absolute.Center
+import androidx.compose.foundation.layout.Arrangement.Center
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.platform.Font
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.WindowState
+import androidx.compose.ui.window.application
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonParser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
+import org.jetbrains.skia.impl.Log
+import org.json.JSONObject
+import java.io.File
+import java.io.IOException
+import java.util.logging.Handler
+import javax.security.auth.callback.Callback
+
+var text = mutableStateOf("Nothing yet")
+var ISPName = mutableStateOf("-")
+var dataUsed = mutableStateOf(0)
+var homeScreenElementsShown =mutableStateOf(true)
+var secondScreenElementsShown = mutableStateOf(false)
+var showPannel  =mutableStateOf(true)
+
+
+
+@Composable
+fun Indicator(type: String, typeData:String, imagePath:String){
+    Row(modifier = Modifier
+        .clip(shape = RoundedCornerShape(12.dp))
+        .width(370.dp)
+        .height(80.dp)
+        .background(Color(0xFF141414)),
+        verticalAlignment = Alignment.CenterVertically
+
+
+
+
+    ){
+
+
+        Image(painter = painterResource("$imagePath"),
+            contentDescription = "image",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .padding(start = 15.dp)
+                .height(45.dp)
+                .width(45.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp)
+                ))
+        Column (modifier = Modifier
+            .height(40.dp)
+            .padding(start=15.dp)
+            .background(Color(0X000000))
+            , verticalArrangement = Arrangement.SpaceBetween
+        ){
+
+            Text(type,
+                fontFamily = FontFamily(Font(
+                    resource = "BRSonoma-SemiBold.otf"
+                )),
+                fontWeight = FontWeight.Light,
+                modifier = Modifier
+                    .padding(start=0.dp)
+                    .padding(top=0.dp),
+                fontSize = 14.sp
+                , color = Color(0XFF717171))
+
+
+            Text(typeData,
+                fontFamily = FontFamily(Font(
+                    resource = "BRSonoma-SemiBold.otf"
+                )),
+                fontWeight = FontWeight.Light,
+                modifier = Modifier
+                    .padding(start=0.dp)
+                    .padding(top=0.dp),
+                fontSize = 16.sp,
+                color = Color(0XFFffffff))
+        }
+
+
+    }
+
+}
+
+
+
+//buttons are problematic
+
+
+
+@Composable
+@Preview
+fun App() {
+
+
+
+    val client = OkHttpClient()
+
+    val mediaType = "application/json".toMediaTypeOrNull()
+
+    var body = RequestBody.create(
+        mediaType,
+        ""
+    )
+
+    val request = Request.Builder()
+        //.url("https://listen-api.listennotes.com/api/v2/podcasts/" + id_ + "?sort=recent_first")
+        .url("http://ip-api.com/json")
+        .method("GET", null)
+        //.header("X-ListenAPI-Key", "c7a88e0f1a17445bb4f14b4212fa161f")
+        //.header("Accept", "application/json")
+        .build()
+
+    var response__ = ""
+
+    client.newCall(request).enqueue(object : Callback, okhttp3.Callback {
+        override fun onFailure(call: okhttp3.Call, e: IOException) {
+            e.printStackTrace()
+        }
+
+
+        override fun onResponse(call: okhttp3.Call, response_: Response) {
+            response_.use {
+
+                var response_ = response_.body!!.string()
+
+                val gson_ = GsonBuilder().setPrettyPrinting().create()
+                var prettyJson_ = gson_.toJson(
+                    JsonParser.parseString(
+                        response_ // About this thread blocking annotation : https://github.com/square/retrofit/issues/3255
+                    )
+                )
+
+
+
+                var obj_ = JSONObject(prettyJson_)
+
+                println(obj_.toString())
+                ISPName.value = obj_.getString("as").split(" ")[1].toString()
+
+                Log.info(obj_.toString())
+
+
+
+
+
+
+
+
+
+
+
+                //var obj_ = JSONObject(prettyJson_)
+                //ISPName = obj_.getString("as").split(" ")[1].toString()
+                //var newValue = obj_.getString("as").split(" ")[1]
+                //println("Api_result"+obj_.toString())
+
+                //ISPName = "idk"
+
+
+
+
+
+                //https://ipv4.appliwave.testdebit.info:8080/1G.iso
+
+                //var code = obj_.getJSONObject("meta").getString("code")
+            }
+        }
+    })
+
+
+
+    Box(
+        Modifier.size(420.dp, 800.dp).background(Color(0xFF000000))
+    ){
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+            , horizontalAlignment = Alignment.CenterHorizontally
+        ){
+
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(90.dp)
+            ){
+
+                Text("Speedtest",
+                    fontFamily = FontFamily(Font(
+                        resource = "BRSonoma-SemiBold.otf"
+                    )),
+
+                    modifier = Modifier
+                        .padding(start=30.dp)
+                        .padding(top=50.dp),
+                    fontSize = 28.sp
+                    , color = Color(0XFFffffff)
+                )
+
+
+
+            }
+
+            Column(modifier = Modifier
+
+                .padding(top=20.dp)
+                .clip(shape = RoundedCornerShape(12.dp))
+                .width(370.dp)
+                .height(162.dp)
+                .background(Color(0xFF141414)),
+                verticalArrangement = Arrangement.Center
+
+
+
+            ){
+                Indicator("ISP", ISPName.value,"ISPIcon.png")
+                Divider(color = Color(0XFF1b1b1b), thickness = 2.dp)
+                Indicator("Server", "Appliwave","serverIcon.png")
+
+
+
+
+
+
+
+            }
+            androidx.compose.animation.AnimatedVisibility(
+                visible = showPannel.value,
+                enter = expandHorizontally(),
+                exit = shrinkHorizontally()
+            ){
+                Column(modifier = Modifier
+
+                    .padding(top=50.dp)
+                    .width(370.dp)
+                    .height(80.dp)
+
+
+
+
+                ){
+                    Text("Data Used",
+                        fontFamily = FontFamily(Font(
+                            resource = "BRSonoma-Regular.otf"
+                        )),
+                        fontWeight = FontWeight.W100,
+                        modifier = Modifier
+                            .padding(start=0.dp)
+                            .padding(top=0.dp),
+                        fontSize = 15.sp
+                        , color = Color(0XFF717171)
+                    )
+
+                    Text("$dataUsed GB",
+                        fontFamily = FontFamily(Font(
+                            resource = "BRSonoma-Medium.otf"
+                        )),
+                        fontWeight = FontWeight.Light,
+                        modifier = Modifier
+                            .padding(start=0.dp)
+                            .padding(top=0.dp)
+                            .height(44.dp)
+                            .offset(y = (-5).dp),
+                        fontSize = 45.sp
+                        , color = Color(0XFFFFFFFFFF)
+                    )
+
+                    Text("This month",
+                        fontFamily = FontFamily(Font(
+                            resource = "BRSonoma-Regular.otf"
+                        )),
+                        fontWeight = FontWeight.W100,
+                        modifier = Modifier
+                            .padding(start=0.dp)
+                            .padding(top=0.dp),
+                        fontSize = 13.sp
+                        , color = Color(0XFF2e2e2e)
+                    )
+
+
+
+
+
+
+
+
+
+                }
+
+            }
+
+            Button(onClick = {
+                showPannel.value = false
+
+            }){
+
+            }
+
+
+
+
+
+
+
+
+
+
+        }
+
+    }
+
+
+
+
+
+
+
+
+}
+
+
+
+
+fun main() = application {
+    val state = WindowState(size = DpSize(Dp.Unspecified, Dp.Unspecified))
+
+
+    Window(onCloseRequest = ::exitApplication, state=state) {
+        App()
+    }
+}
