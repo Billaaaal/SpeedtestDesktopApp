@@ -65,6 +65,15 @@ compose.desktop {
                 packageVersion = "1.0.0"
 
 
+
+            }
+            linux {
+                // a version for all Linux distributables
+                packageVersion = "1.0.0"
+                // a version only for the deb package
+                debPackageVersion = "1.0.0"
+                // a version only for the rpm package
+                rpmPackageVersion = "1.0.0"
             }
         }
 
